@@ -1,0 +1,23 @@
+# AWS Configuration
+aws_region = "us-east-1"
+
+# Project Configuration
+project_name = "browser-analytics"
+environment = "dev"
+
+# Network Configuration
+vpc_cidr = "10.0.0.0/16"
+availability_zones = ["us-east-1a", "us-east-1b", "us-east-1c"]
+
+# Kinesis Configuration
+kinesis_shard_count = 10
+kinesis_retention_period = 24
+
+# Tags
+tags = {
+  Project     = "browser-analytics"
+  Environment = "dev"
+  ManagedBy   = "terraform"
+  Owner       = "data-team"
+  CostCenter  = "engineering"
+}
