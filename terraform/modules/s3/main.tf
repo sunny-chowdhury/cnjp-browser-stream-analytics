@@ -1,17 +1,20 @@
-# KMS key for S3 encryption
+# KMS Key for S3 Data Lake Encryption
+# All our analytics data needs to be encrypted for privacy compliance
 resource "aws_kms_key" "s3" {
   description             = "KMS key for S3 bucket encryption"
-  deletion_window_in_days = 7
+  deletion_window_in_days = 7  # safety buffer before deletion
   
   tags = var.tags
 }
 
+# human-friendly alias for the key
 resource "aws_kms_alias" "s3" {
   name          = "alias/${var.project_name}-${var.environment}-s3"
   target_key_id = aws_kms_key.s3.key_id
 }
 
-# S3 bucket for raw data
+# S3 Bucket: Raw Analytics Data Lake
+# This stores the unprocessed browser events from kinesis firehose in parquet format
 resource "aws_s3_bucket" "raw_data" {
   bucket = "${var.project_name}-${var.environment}-raw-data"
   
@@ -36,6 +39,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "raw_data" {
   }
 }
 
+# lifecycle policy to optimize storage costs over time
 resource "aws_s3_bucket_lifecycle_configuration" "raw_data" {
   bucket = aws_s3_bucket.raw_data.id
 
@@ -44,26 +48,26 @@ resource "aws_s3_bucket_lifecycle_configuration" "raw_data" {
     status = "Enabled"
 
     transition {
-      days          = 30
+      days          = 30                    # move to infrequent access after 30 days
       storage_class = "STANDARD_IA"
     }
 
     transition {
-      days          = 90
+      days          = 90                    # move to glacier after 90 days
       storage_class = "GLACIER_IR"
     }
 
     transition {
-      days          = 365
+      days          = 365                   # move to deep archive after 1 year
       storage_class = "DEEP_ARCHIVE"
     }
 
     expiration {
-      days = 2555  # 7 years
+      days = 2555  # delete after 7 years (compliance requirement)
     }
 
     noncurrent_version_expiration {
-      noncurrent_days = 30
+      noncurrent_days = 30                  # cleanup old versions after 30 days
     }
   }
 }
