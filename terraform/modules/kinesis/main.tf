@@ -1,43 +1,50 @@
-# KMS key for Kinesis encryption
+# KMS Key for Kinesis Stream Encryption
+# We need this to encrypt all the sensitive browser data flowing through kinesis
 resource "aws_kms_key" "kinesis" {
   description             = "KMS key for Kinesis Data Stream encryption"
-  deletion_window_in_days = 7
+  deletion_window_in_days = 7  # minimum wait time before key is actually deleted
   
   tags = var.tags
 }
 
+# alias makes it easier to reference the key in other places
 resource "aws_kms_alias" "kinesis" {
   name          = "alias/${var.project_name}-${var.environment}-kinesis"
   target_key_id = aws_kms_key.kinesis.key_id
 }
 
-# Kinesis Data Stream
+# Kinesis Data Stream - The Heart of Our Real-time Pipeline
+# This stream handles millions of browser events per day from user extensions
 resource "aws_kinesis_stream" "browser_analytics_events" {
   name                      = "${var.project_name}-${var.environment}-events"
-  shard_count               = var.shard_count
-  retention_period          = var.retention_period
-  shard_level_metrics       = ["IncomingRecords", "OutgoingRecords"]
-  enforce_consumer_deletion = false
+  shard_count               = var.shard_count                         # start with this many shards
+  retention_period          = var.retention_period                   # how long to keep data (hours)
+  shard_level_metrics       = ["IncomingRecords", "OutgoingRecords"] # track throughput metrics
+  enforce_consumer_deletion = false                                  # don't force deletion of consumers
   
-  encryption_type = "KMS"
+  encryption_type = "KMS"              # encrypt everything with our kms key
   kms_key_id      = aws_kms_key.kinesis.arn
   
   stream_mode_details {
-    stream_mode = "PROVISIONED"
+    stream_mode = "PROVISIONED"        # we want control over shard scaling
   }
   
   tags = var.tags
 }
 
-# Auto Scaling for Kinesis
+# Auto Scaling for Kinesis Stream
+# This automatically adds/removes shards based on traffic to handle load spikes
+
+# scaling target for reading data from the stream (lambda consumers)
 resource "aws_appautoscaling_target" "kinesis_read" {
-  max_capacity       = var.max_shard_count
-  min_capacity       = var.min_shard_count
+  max_capacity       = var.max_shard_count                               # don't go above this
+  min_capacity       = var.min_shard_count                               # don't go below this
   resource_id        = "stream/${aws_kinesis_stream.browser_analytics_events.name}"
   scalable_dimension = "kinesis:shard:ReadCapacity"
   service_namespace  = "kinesis"
 }
 
+# scaling target for writing data to the stream (from api gateway)
 resource "aws_appautoscaling_target" "kinesis_write" {
   max_capacity       = var.max_shard_count
   min_capacity       = var.min_shard_count
@@ -47,22 +54,25 @@ resource "aws_appautoscaling_target" "kinesis_write" {
 }
 
 # Auto Scaling Policies
+# these policies define when and how to scale the stream based on metrics
+
+# policy to scale up read capacity when incoming record rate is high
 resource "aws_appautoscaling_policy" "kinesis_read_scale_up" {
   name               = "${var.project_name}-${var.environment}-kinesis-read-scale-up"
-  policy_type        = "TargetTrackingScaling"
+  policy_type        = "TargetTrackingScaling"         # automatically adjust to hit target
   resource_id        = aws_appautoscaling_target.kinesis_read.resource_id
   scalable_dimension = aws_appautoscaling_target.kinesis_read.scalable_dimension
   service_namespace  = aws_appautoscaling_target.kinesis_read.service_namespace
 
   target_tracking_scaling_policy_configuration {
-    target_value = 70.0
+    target_value = 70.0                               # try to keep utilization at 70%
     
     predefined_metric_specification {
-      predefined_metric_type = "KinesisStreamIncomingRecords"
+      predefined_metric_type = "KinesisStreamIncomingRecords"  # scale based on incoming records
     }
     
-    scale_out_cooldown = 300
-    scale_in_cooldown  = 900
+    scale_out_cooldown = 300  # wait 5 min before scaling out again
+    scale_in_cooldown  = 900  # wait 15 min before scaling in (more conservative)
   }
 }
 
