@@ -1,46 +1,51 @@
-# DynamoDB table for real-time user features
+# DynamoDB Table: User Real-time Features
+# This is our hot storage for user behavioral data - gets hit on every ad request
 resource "aws_dynamodb_table" "user_features" {
   name           = "${var.project_name}-${var.environment}-user-features"
-  billing_mode   = "ON_DEMAND"
-  hash_key       = "user_id"
-  range_key      = "feature_type"
+  billing_mode   = "ON_DEMAND"     # pay per request - perfect for unpredictable load
+  hash_key       = "user_id"       # partition key - ensures user data isolation
+  range_key      = "feature_type"  # sort key - allows multiple feature types per user
 
   attribute {
     name = "user_id"
-    type = "S"
+    type = "S"    # string
   }
 
   attribute {
     name = "feature_type"
-    type = "S"
+    type = "S"    # string - values like "realtime_features", "categories_24h", etc
   }
 
   attribute {
     name = "category"
-    type = "S"
+    type = "S"    # string - for gsi
   }
 
   attribute {
     name = "last_updated"
-    type = "N"
+    type = "N"    # number - timestamp for gsi
   }
 
+  # global secondary index for querying by category (used for segment creation)
   global_secondary_index {
     name            = "CategoryIndex"
-    hash_key        = "category"
-    range_key       = "last_updated"
-    projection_type = "ALL"
+    hash_key        = "category"      # partition by category
+    range_key       = "last_updated"  # sort by time updated
+    projection_type = "ALL"           # include all attributes in index
   }
 
+  # automatically delete old feature data
   ttl {
-    attribute_name = "ttl"
-    enabled        = true
+    attribute_name = "ttl"     # ttl field name in records
+    enabled        = true      # enables auto-deletion of expired records
   }
 
+  # enables point-in-time recovery for compliance
   point_in_time_recovery {
     enabled = true
   }
 
+  # encrypt sensitive user data
   server_side_encryption {
     enabled = true
   }
@@ -48,26 +53,28 @@ resource "aws_dynamodb_table" "user_features" {
   tags = var.tags
 }
 
-# DynamoDB table for domain categories
+# DynamoDB Table: Domain Categories Lookup
+# Maps website domains to advertising categories (e.g., "amazon.com" -> "ecommerce")
 resource "aws_dynamodb_table" "domain_categories" {
   name           = "${var.project_name}-${var.environment}-domain-categories"
   billing_mode   = "ON_DEMAND"
-  hash_key       = "domain"
+  hash_key       = "domain"        # partition key is the domain name
 
   attribute {
     name = "domain"
-    type = "S"
+    type = "S"    # string - like "reddit.com", "amazon.com"
   }
 
   attribute {
     name = "category"
-    type = "S"
+    type = "S"    # string - like "social", "ecommerce", "news"
   }
 
+  # index to find all domains in a specific category
   global_secondary_index {
     name            = "CategoryIndex"
-    hash_key        = "category"
-    projection_type = "ALL"
+    hash_key        = "category"      # partition by category
+    projection_type = "ALL"           # need all attributes for category queries
   }
 
   point_in_time_recovery {
