@@ -1,18 +1,22 @@
+# Browser Analytics Platform Infrastructure
+# This terraform configuration deploys a complete real-time analytics platform for browser data collection
+
 terraform {
-  required_version = ">= 1.0"
+  required_version = ">= 1.0"     # minimum terraform version
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.0"
+      version = "~> 5.0"          # use latest aws provider v5.x
     }
   }
 }
 
 provider "aws" {
-  region = var.aws_region
+  region = var.aws_region         # deploy to specified aws region
 }
 
-# CloudFront Distribution for JS Library
+# CloudFront Distribution for Browser Analytics JavaScript Library  
+# serves the js library that browser extensions load to send data back to us
 module "cloudfront" {
   source = "./modules/cloudfront"
   
@@ -24,13 +28,15 @@ module "cloudfront" {
   tags = var.tags
 }
 
-# API Gateway with WebSocket support
+# API Gateway: WebSocket for Data Collection + REST for Ad Recommendations
+# websocket handles real-time browser data, rest api serves targeting recommendations to advertisers  
 module "api_gateway" {
   source = "./modules/api_gateway"
   
   project_name = var.project_name
   environment  = var.environment
   
+  # connect to our kinesis stream and lambda functions
   kinesis_stream_arn = module.kinesis.stream_arn
   authorizer_lambda_arn = module.lambda.authorizer_lambda_arn
   authorizer_lambda_function_name = module.lambda.authorizer_lambda_function_name
@@ -44,15 +50,16 @@ module "api_gateway" {
   tags = var.tags
 }
 
-# Kinesis Data Streams
+# Kinesis Data Streams: The Heart of Real-time Processing
+# handles millions of browser events per day with auto-scaling shards
 module "kinesis" {
   source = "./modules/kinesis"
   
   project_name = var.project_name
   environment  = var.environment
   
-  shard_count = var.kinesis_shard_count
-  retention_period = var.kinesis_retention_period
+  shard_count = var.kinesis_shard_count           # start with this many shards
+  retention_period = var.kinesis_retention_period # how long to keep data
   
   tags = var.tags
 }
