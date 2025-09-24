@@ -1,7 +1,9 @@
-# IAM roles for Lambda functions
+# IAM Role for Lambda Functions
+# All our lambda functions use this single role to keep things simple and consistent
 resource "aws_iam_role" "lambda_execution" {
   name = "${var.project_name}-${var.environment}-lambda-execution"
 
+  # this policy allows lambda service to assume this role
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -9,7 +11,7 @@ resource "aws_iam_role" "lambda_execution" {
         Action = "sts:AssumeRole"
         Effect = "Allow"
         Principal = {
-          Service = "lambda.amazonaws.com"
+          Service = "lambda.amazonaws.com"  # only lambda service can use this role
         }
       }
     ]
@@ -18,19 +20,20 @@ resource "aws_iam_role" "lambda_execution" {
   tags = var.tags
 }
 
-# IAM policy for Lambda basic execution
+# attach aws managed policy for basic lambda execution (cloudwatch logs)
 resource "aws_iam_role_policy_attachment" "lambda_basic" {
   role       = aws_iam_role.lambda_execution.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"  # managed policy
 }
 
-# IAM policy for VPC access
+# attach aws managed policy for vpc access (needed for accessing elasticache, etc)
 resource "aws_iam_role_policy_attachment" "lambda_vpc" {
   role       = aws_iam_role.lambda_execution.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"  # managed policy
 }
 
-# IAM policy for Kinesis access
+# custom iam policy for kinesis access
+# lambda functions need to read from and write to our kinesis stream
 resource "aws_iam_policy" "lambda_kinesis" {
   name = "${var.project_name}-${var.environment}-lambda-kinesis"
 
@@ -40,14 +43,14 @@ resource "aws_iam_policy" "lambda_kinesis" {
       {
         Effect = "Allow"
         Action = [
-          "kinesis:GetRecords",
-          "kinesis:GetShardIterator",
-          "kinesis:DescribeStream",
-          "kinesis:ListStreams",
-          "kinesis:PutRecord",
-          "kinesis:PutRecords"
+          "kinesis:GetRecords",         # read data from stream
+          "kinesis:GetShardIterator",   # get position in stream
+          "kinesis:DescribeStream",     # get stream metadata
+          "kinesis:ListStreams",        # list available streams
+          "kinesis:PutRecord",          # write single record
+          "kinesis:PutRecords"          # write multiple records (batch)
         ]
-        Resource = var.kinesis_stream_arn
+        Resource = var.kinesis_stream_arn  # only our specific stream
       }
     ]
   })
@@ -124,39 +127,41 @@ resource "aws_iam_role_policy_attachment" "lambda_s3" {
   policy_arn = aws_iam_policy.lambda_s3.arn
 }
 
-# Lambda function for WebSocket authorization
+# Lambda Function: WebSocket Connection Authorizer
+# This validates JWT tokens when users connect to our websocket api
 resource "aws_lambda_function" "authorizer" {
-  filename         = "authorizer.zip"
+  filename         = "authorizer.zip"                                      # deployment package
   function_name    = "${var.project_name}-${var.environment}-authorizer"
   role            = aws_iam_role.lambda_execution.arn
-  handler         = "index.lambda_handler"
-  runtime         = "python3.11"
-  timeout         = 30
-  memory_size     = 256
+  handler         = "index.lambda_handler"                                 # python function entry point
+  runtime         = "python3.11"                                          # latest stable python
+  timeout         = 30                                                     # max 30 seconds for auth
+  memory_size     = 256                                                    # 256mb should be plenty for auth
 
   environment {
     variables = {
-      JWT_SECRET = var.jwt_secret
-      USER_TABLE = var.user_table_name
+      JWT_SECRET = var.jwt_secret      # secret key for validating jwt tokens
+      USER_TABLE = var.user_table_name # dynamodb table to check user status
     }
   }
 
   tags = var.tags
 }
 
-# Lambda function for Kinesis producer (WebSocket data handler)
+# Lambda Function: Kinesis Producer
+# Takes websocket messages from browsers and pushes them into kinesis stream
 resource "aws_lambda_function" "kinesis_producer" {
   filename         = "kinesis_producer.zip"
   function_name    = "${var.project_name}-${var.environment}-kinesis-producer"
   role            = aws_iam_role.lambda_execution.arn
   handler         = "index.lambda_handler"
   runtime         = "python3.11"
-  timeout         = 10
-  memory_size     = 512
+  timeout         = 10                            # keep this fast since it's on the critical path
+  memory_size     = 512                           # bit more memory for kinesis sdk operations
 
   environment {
     variables = {
-      KINESIS_STREAM_NAME = var.kinesis_stream_name
+      KINESIS_STREAM_NAME = var.kinesis_stream_name  # which stream to write to
     }
   }
 
@@ -176,44 +181,46 @@ resource "aws_lambda_function" "cleanup" {
   tags = var.tags
 }
 
-# Lambda function for stream processing
+# Lambda Function: Stream Processor (The Main Event Processing Engine)
+# This is where the magic happens - processes kinesis events and extracts features for real-time targeting
 resource "aws_lambda_function" "stream_processor" {
   filename         = "stream_processor.zip"
   function_name    = "${var.project_name}-${var.environment}-stream-processor"
   role            = aws_iam_role.lambda_execution.arn
   handler         = "index.lambda_handler"
   runtime         = "python3.11"
-  timeout         = 300
-  memory_size     = 1024
-  reserved_concurrent_executions = 1000
+  timeout         = 300                                        # 5 minutes max processing time
+  memory_size     = 1024                                       # more memory for complex processing
+  reserved_concurrent_executions = 1000                       # limit concurrent executions for cost control
 
   environment {
     variables = {
-      FEATURES_TABLE      = var.features_table_name
-      DOMAIN_CATEGORIES_TABLE = var.domain_categories_table_name
-      S3_BUCKET          = var.s3_bucket_name
-      REDIS_ENDPOINT     = var.redis_endpoint
+      FEATURES_TABLE           = var.features_table_name       # where to store user features
+      DOMAIN_CATEGORIES_TABLE  = var.domain_categories_table_name  # lookup table for domain classification
+      S3_BUCKET               = var.s3_bucket_name             # for processed data output
+      REDIS_ENDPOINT          = var.redis_endpoint             # for caching recommendations
     }
   }
 
   tags = var.tags
 }
 
-# Event source mapping for Kinesis
+# Event Source Mapping: Connects Kinesis Stream to Lambda Processor
+# This tells aws to automatically invoke our lambda when new records arrive in kinesis
 resource "aws_lambda_event_source_mapping" "kinesis_processor" {
-  event_source_arn                   = var.kinesis_stream_arn
+  event_source_arn                   = var.kinesis_stream_arn              # our kinesis stream
   function_name                      = aws_lambda_function.stream_processor.arn
-  starting_position                  = "LATEST"
-  batch_size                        = 100
-  maximum_batching_window_in_seconds = 5
-  parallelization_factor            = 10
-  maximum_record_age_in_seconds     = 3600
-  bisect_batch_on_function_error    = true
-  maximum_retry_attempts            = 3
+  starting_position                  = "LATEST"                            # only process new records, not historical
+  batch_size                        = 100                                  # process up to 100 records at once
+  maximum_batching_window_in_seconds = 5                                   # wait max 5 seconds to form batches
+  parallelization_factor            = 10                                   # process up to 10 batches per shard in parallel
+  maximum_record_age_in_seconds     = 3600                                # discard records older than 1 hour
+  bisect_batch_on_function_error    = true                                # split failed batches to isolate bad records
+  maximum_retry_attempts            = 3                                    # retry failed batches up to 3 times
 
   destination_config {
     on_failure {
-      destination_arn = aws_sns_topic.lambda_errors.arn
+      destination_arn = aws_sns_topic.lambda_errors.arn  # send failed records to sns for investigation
     }
   }
 }
