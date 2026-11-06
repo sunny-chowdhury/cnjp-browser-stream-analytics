@@ -1,12 +1,12 @@
-# Measuring AI-Driven Engineering Productivity: A Framework for COS
+# Measuring AI-Driven Engineering Productivity: A Framework for Shopping
 
 Nov 5, 2026 · Sunny Chowdhury
 
 ## Executive summary
 
-AI's value to COS engineering should be measured as **the change in validated delivery per engineering hour, against a pre-AI baseline, with quality held flat or better** — not tokens, seats, lines of code or self-reported time saved. Every one of those inputs can rise while delivery stays flat.
+AI's value to Shopping engineering should be measured as **the change in validated delivery per engineering hour, against a pre-AI baseline, with quality held flat or better** — not tokens, seats, lines of code or self-reported time saved. Every one of those inputs can rise while delivery stays flat.
 
-The research gives us a defensible planning range. Controlled studies span from a 19% slowdown (METR, experienced engineers in mature codebases) to a 26% increase in completed tasks (Microsoft/Accenture field trials). Large observational data puts the net average at 15–20%, falling to 0–10% for complex work in existing codebases. Most COS work is brownfield, so **plan on 10–15% net capacity until our own data proves otherwise**.
+The research gives us a defensible planning range. Controlled studies span from a 19% slowdown (METR, experienced engineers in mature codebases) to a 26% increase in completed tasks (Microsoft/Accenture field trials). Large observational data puts the net average at 15–20%, falling to 0–10% for complex work in existing codebases. Most Shopping work is brownfield, so **plan on 10–15% net capacity until our own data proves otherwise**.
 
 The headcount rule this framework enables:
 
@@ -24,7 +24,7 @@ The rigorous studies agree on three things: individual task speed rises modestly
 | --- | --- | --- | --- |
 | [Faros AI, AI Engineering Report 2026](https://faros.ai/research/ai-acceleration-whiplash) | Telemetry, 22,000 devs, 4,000 teams, 2 years | PR size +51%, median review time 5x, incidents per PR 3x, code churn 10x | Volume metrics rise while quality and flow degrade; measure the system, not output |
 | [Faros AI, AI Productivity Paradox 2025](https://faros.ai/research) | Telemetry, 10,000 devs, 1,255 teams | Tasks +21%, PRs merged +98%, review time +91%, PR size +154%, bugs/dev +9%; no measurable change in team DORA metrics | The bottleneck moves to review; individual gains don't reach the org by default |
-| [METR uplift update (Feb 2026)](https://metr.org/blog/2026-02-24-uplift-update/) | RCT, 57 devs, 143 repos, 800+ tasks | Returning devs −18% time (CI −38% to +9%); new devs −4% (CI −15% to +9%); METR calls its own estimate unreliable and a likely lower bound | Gains are probably real now but hard to prove; you need your own controlled comparison |
+| [METR uplift update (Feb 2026)](https://metr.org/blog/2026-02-24-uplift-update/) | RCT, 57 devs, 143 repos, 800+ tasks | Returning devs −18% time (CI −38% to +9%); new devs −4% (CI −15% to +9%); METR calls its own estimate unreliable and a likely lower bound | Gains are probably real now but hard to prove; you need your own measured data, not surveys |
 | [METR (Jul 2025)](https://arxiv.org/abs/2507.09089) | RCT, 16 experienced OSS devs, 246 tasks in mature repos | Tasks took 19% longer with AI; devs predicted −24% and afterwards believed −20% | Self-report overstates impact by ~40 points; never use surveys as the productivity number |
 | [DORA 2025 State of AI-assisted Software Development](https://dora.dev/dora-report-2025/) | Survey, ~5,000 professionals | 90% adoption; AI now linked to higher throughput, but also to instability; AI is an "amplifier" of existing strengths and weaknesses | Platform and process maturity determine the payoff; publishes a 7-capability AI model |
 | [Stanford, Denisov-Blanch (2025)](https://ai.engineer/talks/ai-developer-productivity) | Observational, ~100,000 devs, 600+ companies | Net 15–20% average after rework; greenfield-simple 30–40%, brownfield-complex 0–10%, sometimes negative | Segment by work type; brownfield legacy work earns the least |
@@ -32,13 +32,13 @@ The rigorous studies agree on three things: individual task speed rises modestly
 | [Google enterprise RCT, Paradis et al. (ICSE 2025)](https://arxiv.org/abs/2410.12944) | RCT, 96 Google engineers, one enterprise task | ~21% less time on task, wide confidence interval | Realistic single-task speedup in a large codebase |
 | [DX AI Measurement Framework](https://getdx.com/research/measuring-ai-code-assistants-and-agents/) | Practitioner framework; Booking.com, Block, Intercom | Utilization → Impact → Cost; Booking.com +16% throughput across 3,500 engineers | Measurement model to adopt; warns against using AI metrics for individual evaluation |
 
-**Planning implication:** the defensible central estimate for a brownfield fintech stack is 10–15% net capacity, with an honest range of 0–25% depending on work mix and review capacity. Anything above that needs COS's own data.
+**Planning implication:** the defensible central estimate for a brownfield fintech stack is 10–15% net capacity, with an honest range of 0–25% depending on work mix and review capacity. Anything above that needs Shopping's own data.
 
 ## How Shopify does it
 
 Shopify's model is **behavior expectations + headcount gating + a small set of guardrail metrics**, not a single productivity number. Farhan Thawar (VP & Head of Engineering) calls his ~20% gain a "humble estimate" and refuses to measure it with lines of code or PR counts. ([BVP, Apr 2026](https://www.bvp.com/atlas/inside-shopifys-ai-first-engineering-playbook))
 
-| Mechanism | What Shopify does | What COS should copy |
+| Mechanism | What Shopify does | What Shopping should copy |
 | --- | --- | --- |
 | Behavior baseline | [Tobi Lütke's April 2025 memo](https://www.cnbc.com/2025/04/07/shopify-ceo-prove-ai-cant-do-jobs-before-asking-for-more-headcount.html) made reflexive AI use a baseline expectation; it is assessed in biannual performance and peer reviews | Assess *behaviors*, never usage volume, in reviews |
 | Headcount gate | Teams must show why AI can't do the work before requesting headcount or resources | Same gate, but with a quantified capacity case (Part B) |
@@ -50,7 +50,7 @@ Shopify's model is **behavior expectations + headcount gating + a small set of g
 | Comprehension debt | Engineers must understand systems 2–3 layers below their work; "abdicate the toil, not the thinking" | Code ownership and incident-response checks |
 | Enablement | Six-person ML infra team, MCP servers to internal systems, prompt library, leaders publicly demo their own AI use | Fund enablement before measuring impact |
 
-**What Shopify does not have:** a causal, audited productivity number. Thawar's 20% is judgment informed by demos and guardrails. For a headcount decision at Capital One scale, we need to go further and measure against a baseline.
+**What Shopify does not have:** a causal, audited productivity number. Thawar's 20% is judgment informed by demos and guardrails. For a headcount decision at Capital One scale, we go further and measure each team against its own baseline.
 
 ## Part A: What good AI behavior looks like
 
@@ -73,102 +73,78 @@ Good behavior means AI is used to **remove toil and widen exploration while the 
 
 ## Part B: How we measure whether AI saves engineering capacity
 
-One number drives decisions: **Effective Capacity Gain (ECG)** — the change in validated throughput per engineer versus baseline, net of a control trend, counted only when quality holds. Everything else is either a leading indicator or a guardrail.
+One number drives the headcount conversation: **capacity gain**, how much more finished work each engineer ships per quarter than before, counted only if quality hasn't slipped. Everything else is context.
 
-### The unit of work
+### What counts as finished work
 
-A **validated delivery unit (VDU)** is a merged change linked to an accepted work item that reached production and was not reverted or substantially reworked within 30 days. Work items are sized S/M/L (weights 1/3/8) and calibrated quarterly by sampling. This is deliberately not PR count or lines of code, both of which AI inflates.
+Tickets that reached production and weren't rolled back or rewritten within 30 days, using each team's existing sizing. Not PR counts or lines of code; AI inflates both.
 
-### Metric stack
+### Six metrics, three jobs
 
-| Layer | Metric | Definition | Source | Role |
-| --- | --- | --- | --- | --- |
-| 1. Adoption | Weekly active AI users | Engineers with ≥1 gateway session in the week ÷ engineers | AI gateway | Leading indicator only |
-| 1. Adoption | AI-assisted and agent-authored PR share | PRs with gateway session or agent author ÷ all PRs | Gateway + Git | Leading indicator only |
-| 2. Flow | Validated throughput | Weighted VDUs per engineer-week | Jira + Git + deploy logs | **Decision metric** |
-| 2. Flow | Lead time for changes | First commit to production, median | Git + CD | Decision metric |
-| 2. Flow | Review latency | PR open to first review; open to merge | Git | Bottleneck detector |
-| 3. Quality | Change failure rate | Deploys causing incident or rollback ÷ deploys | CD + incident tool | **Hard gate** |
-| 3. Quality | Rework rate | Lines rewritten within 21 days ÷ lines added | Git | **Hard gate** |
-| 3. Quality | Vulnerability introduction rate | New SAST/SCA high+critical findings per 100 PRs | Security scanners | Hard gate |
-| 4. Capacity | Effective Capacity Gain | Formula below | Derived | **Headcount input** |
-| 4. Capacity | KTLO share | Engineer-hours on toil and maintenance ÷ total | Jira allocation | Shows where capacity was freed |
-| 5. Outcome | Roadmap delivery | Committed roadmap items shipped per quarter | Portfolio tool | Business confirmation |
-| Cost | Cost per VDU | (AI spend + tooling) ÷ VDUs | Gateway billing | ROI, not productivity |
-| Experience | Developer experience survey | Quarterly, DX-style, includes perceived time saved | Survey | Context only; never the number |
+| Metric | What it tells us | Job |
+| --- | --- | --- |
+| Shipped work per engineer per quarter | Are we delivering more? | Decides the gain |
+| Lead time (commit to production) | Are we delivering faster? | Decides the gain |
+| Change failure rate | Is more work breaking production? | Quality gate |
+| Rework rate (code rewritten within 21 days) | Is AI code being thrown away? | Quality gate |
+| Review wait time | Are reviewers absorbing the gain? | Early warning |
+| AI adoption and spend | Are people using it, and at what cost? | Context only |
 
-### Core formulas
+All six come from systems Shopping already runs: Jira, Git, the deploy pipeline, incident tooling and the AI gateway.
 
-Effective Capacity Gain uses a difference-in-differences against teams not yet on the new workflow (or the org's pre-rollout trend if every team adopts at once):
+### The calculation
 
 ```
-ECG = (T_team,now / T_team,base) / (T_ctrl,now / T_ctrl,base) − 1
+Capacity gain = (shipped work per engineer this quarter ÷ team's baseline) − 1
+Freed capacity (engineers) = team size × gain ÷ (1 + gain)
 ```
 
-where T is validated throughput per engineer-week. ECG is **reported as zero** for any quarter in which change failure rate or rework rate exceeds baseline by more than 10% relative.
+The baseline is the team's average over the four quarters before measurement starts. If change failure rate or rework rate is more than 10% worse than baseline, the gain counts as zero that quarter.
 
-Capacity reclaimed, in full-time equivalents, for a team of N engineers:
+**Worked example:** a 40-engineer team ships 12% more with quality flat. That frees 40 × 0.12 ÷ 1.12 ≈ 4.3 engineers' worth of capacity, roughly $1.07M at a $250K loaded cost, or about $830K net of $240K AI spend. (Illustrative figures; Finance supplies the real ones.)
 
-```
-FTE_reclaimed = N × ECG / (1 + ECG)
-```
+### Limits to state upfront
 
-Net annual value:
+- A before/after comparison can't fully separate AI from other changes such as reorgs, roadmap mix or attrition. Note those beside each team's number, and require two consecutive quarters, not one.
+- If AI was already in heavy use during the baseline, the number shows the gain from *better* AI use, not AI's total effect. Say which in every report.
 
-```
-V = FTE_reclaimed × C_loaded − S_AI
-```
+## Translating to headcount
 
-where C_loaded is fully loaded cost per engineer and S_AI is annual AI spend (licenses + tokens + enablement).
-
-**Worked example:** a 40-engineer brownfield team measures ECG = 12% with quality flat. Reclaimed capacity is 40 × 0.12 ÷ 1.12 ≈ 4.3 FTE. At $250K loaded cost and $240K annual AI spend, net value is ≈ $830K per year.
-
-### Making it causal, not anecdotal
-
-- **Staggered rollout:** introduce new AI workflows (e.g., agentic toil automation) to matched teams in waves, so later waves act as controls.
-- **Segment the work:** report ECG separately for greenfield vs. brownfield and low vs. high complexity, per the Stanford finding that gains differ fourfold.
-- **Sample-based calibration:** each quarter, two engineers re-size 50 random work items blind to AI status, to keep VDU weights honest.
-- **Watch the constraint:** if review latency rises faster than throughput, the gain is being absorbed by reviewers (the Faros pattern) and is not yet bankable.
-
-## Translating to capacity and headcount
-
-Headcount is planned on **banked** capacity gain only — measured, quality-gated and sustained — never on projected or self-reported gain.
+Headcount is planned on **banked** capacity gain only: measured, quality-checked and sustained. Never on projected or self-reported gain.
 
 ```
-FTE_required = D / (t_base × (1 + ECG_banked))
+Engineers needed = forecast work ÷ (baseline output per engineer × (1 + banked gain))
 ```
 
-where D is forecast demand in validated delivery units and t_base is baseline throughput per FTE.
+### When a gain counts as banked
 
-### Rules for banking a gain
-
-1. ECG has been measured for **two consecutive quarters** on the team, segmented by work type.
-2. Change failure rate, rework rate and vulnerability introduction rate are at or below baseline in both quarters.
-3. Review latency is flat or improving (the gain isn't being absorbed by reviewers).
-4. The banked figure is the **lower** of the two quarters, capped at 25% unless an executive review approves more.
-5. Banked gain is re-measured every quarter and can be withdrawn, which then re-opens hiring.
+1. Measured for **two consecutive quarters**.
+2. Change failure rate and rework rate at or below baseline in both.
+3. Review wait time not rising, so reviewers aren't silently absorbing the gain.
+4. Use the **lower** of the two quarters, capped at 25% without executive sign-off.
+5. Re-checked every quarter; if it drops, hiring reopens.
 
 ### Why this prevents over-hiring and layoffs
 
-A 40-engineer team expecting 20% more demand next year (D = 48 FTE-equivalents of baseline work):
+A 40-engineer team expecting 20% more work next year (48 engineers' worth at today's output):
 
-| Planning assumption | ECG used | FTE required | Hiring action | Risk |
+| Planning assumption | Gain used | Engineers needed | Hiring action | Risk |
 | --- | --- | --- | --- | --- |
-| Ignore AI | 0% | 48.0 | +8 | Over-hire; likely future layoff once gains show up |
-| Banked, measured gain | 10% | 43.6 | +4 | Right-sized; re-check quarterly |
-| Vendor or self-reported claim | 30% | 36.9 | −3 | Under-staffed; delivery misses, then panic hiring |
+| Ignore AI | 0% | 48.0 | +8 | Over-hire; likely layoff once gains show up |
+| Banked, measured gain | 10% | 43.6 | +4 | Right-sized; re-checked quarterly |
+| Vendor or self-reported claim | 30% | 36.9 | −3 | Under-staffed; missed delivery, then panic hiring |
 
 ### The quantified "prove AI can't do it" gate
 
 Every headcount request includes:
 
-- [ ] Demand forecast in validated delivery units, by work type
-- [ ] Team's banked ECG and current behavior scores (Part A)
-- [ ] What was attempted with AI or agents for the requested work, with results
-- [ ] The work that remains human-bound and why (e.g., high-complexity brownfield, regulatory judgment)
-- [ ] Review capacity check: who reviews the added output
+- [ ] Forecast work for the period
+- [ ] Team's banked capacity gain and Part A behavior scores
+- [ ] What was tried with AI or agents for this work, and what happened
+- [ ] The work that remains human-bound, and why
+- [ ] Who reviews the extra output
 
-Where demand exceeds banked capacity but unbanked gains look promising, bridge with flexible capacity (contractors, internal mobility, deferred scope) for one or two quarters rather than permanent hires.
+Where demand exceeds banked capacity but gains look promising, bridge with flexible capacity (contractors, internal mobility, deferred scope) for a quarter or two rather than permanent hires.
 
 ## Metrics to avoid as productivity measures
 
@@ -185,22 +161,21 @@ These can be tracked for cost or adoption, but none may appear as evidence of pr
 
 ## Rollout plan
 
-First banked ECG can inform Q3 2027 headcount planning if instrumentation starts this quarter.
+First banked gains can inform Q3 2027 headcount planning if tracking starts this quarter.
 
-1. **Instrument (Nov–Dec 2026).** Tag AI gateway sessions by team and task type; enforce PR-to-ticket linking; define VDU sizing; wire change failure, rework and SAST data into one dashboard.
-2. **Baseline (Q1 2027).** Pull trailing four quarters of throughput and quality per team. Where possible, use pre-2025 history as the no-AI reference; otherwise ECG measures gain from *new* practices on top of current usage — state which in every report.
-3. **Communicate.** Publish the metric definitions and the commitment that telemetry is team-level and not used for individual ratings.
-4. **Staggered waves (Q1–Q2 2027).** Introduce specific workflows (agentic toil automation, AI first-pass review, context files) to matched teams in waves; later waves serve as controls.
-5. **First readings (end Q2 2027).** Two quarters of ECG per team, segmented by work type; quality gates applied.
-6. **Feed planning (Q3 2027).** Banked ECG enters the headcount model; every request uses the quantified gate.
+1. **Instrument (Nov–Dec 2026).** Link PRs to tickets, tag AI gateway usage by team, and put the six metrics on one dashboard.
+2. **Baseline (Q1 2027).** Pull each team's previous four quarters, and note whether AI was already in heavy use then.
+3. **Communicate.** Publish the definitions and commit that metrics are team-level, never individual ratings.
+4. **Measure (Q1–Q2 2027).** Two quarters of capacity gain per team, with quality gates and notes on other changes.
+5. **Feed planning (Q3 2027).** Banked gains enter the headcount model; every request uses the gate.
 
-**Cadence:** behavior and flow dashboard monthly; ECG review quarterly with Engineering, Finance and Enterprise Architecture; headcount calibration twice a year.
+**Cadence:** dashboard monthly; capacity review quarterly with Engineering, Finance and Enterprise Architecture; headcount calibration twice a year.
 
 **Open questions for leadership:**
 
-- Does COS have reliable pre-2025 throughput history, or do we accept an incremental baseline?
-- Who owns VDU sizing calibration — engineering ops or Enterprise Architecture?
-- What loaded cost per engineer should Finance use in the value formula?
+- How far back is Shopping's ticket and deploy history reliable?
+- Do teams size tickets consistently enough to compare quarter to quarter?
+- What loaded cost per engineer should Finance use?
 
 ## Sources
 
